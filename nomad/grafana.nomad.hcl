@@ -21,7 +21,7 @@ job "grafana" {
 
       env {
         GF_SECURITY_ADMIN_USER     = "admin"
-        GF_SECURITY_ADMIN_PASSWORD = "admin"
+        GF_SECURITY_ADMIN_PASSWORD = "admin_password_change_me"
       }
 
       resources {

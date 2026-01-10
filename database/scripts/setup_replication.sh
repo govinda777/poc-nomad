@@ -3,13 +3,16 @@ set -e
 
 # Wait for Primary DB to be ready
 echo "Waiting for Primary DB (AWS)..."
-until PGPASSWORD=pocpass psql -h postgres-aws-primary -U poc -d pocdb -c '\q'; do
+: "${PGPASSWORD:=pocpass}"
+export PGPASSWORD
+
+until psql -h postgres-aws-primary -U poc -d pocdb -c '\q'; do
   echo "Primary unavailable - sleeping"
   sleep 1
 done
 
 echo "Primary is UP. Creating replication slot..."
-PGPASSWORD=pocpass psql -h postgres-aws-primary -U poc -d pocdb -c "SELECT pg_create_physical_replication_slot('gcp_standby_slot');" || true
+psql -h postgres-aws-primary -U poc -d pocdb -c "SELECT pg_create_physical_replication_slot('gcp_standby_slot');" || true
 
 # Check if Standby is already replicated
 # We check if data directory has standby.signal or if we can connect as read-only
@@ -33,7 +36,7 @@ echo "Running pg_basebackup..."
 docker run --rm \
   --network app_aws-network \
   --volumes-from postgres-gcp-standby \
-  --env PGPASSWORD=pocpass \
+  --env PGPASSWORD=$PGPASSWORD \
   postgres:15-alpine \
   pg_basebackup -h postgres-aws-primary -D /var/lib/postgresql/data -U poc -Fp -Xs -P -R
 

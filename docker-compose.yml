@@ -39,9 +39,9 @@ services:
   postgres-aws-primary:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: pocdb
-      POSTGRES_USER: poc
-      POSTGRES_PASSWORD: pocpass
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: trust
     networks:
       aws-network:
@@ -59,8 +59,8 @@ services:
   postgres-gcp-standby:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: poc
-      POSTGRES_PASSWORD: pocpass
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: trust
     networks:
       gcp-network:
