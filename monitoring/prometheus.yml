@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape Nomad Servers (simulating federation)
+  - job_name: 'nomad-aws'
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: ['nomad-server-aws:4646']
+
+  - job_name: 'nomad-gcp'
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: ['nomad-server-gcp:4646']
+
+  # Scrape Application Instances
+  - job_name: 'api-aws'
+    static_configs:
+      - targets: ['api-aws:8080']
+
+  - job_name: 'api-gcp'
+    static_configs:
+      - targets: ['api-gcp:8080']
