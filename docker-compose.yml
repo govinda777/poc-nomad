@@ -116,6 +116,7 @@ services:
       - DATACENTER=aws
       - DB_HOST=172.20.1.100
       - REDIS_HOST=172.20.1.110
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       aws-network:
         ipv4_address: 172.20.1.30
@@ -132,6 +133,7 @@ services:
       - DATACENTER=gcp
       - DB_HOST=172.21.1.100
       - REDIS_HOST=172.21.1.110
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       gcp-network:
         ipv4_address: 172.21.1.30
