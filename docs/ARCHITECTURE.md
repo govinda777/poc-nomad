@@ -8,19 +8,19 @@ The system simulates a multi-region Active-Active architecture using LocalStack 
 
 ```mermaid
 graph TD
-    User[User / Developer]
+    User[User and Developer]
     subgraph "Nomad Multi-Cloud Active-Active POC"
-        subgraph "AWS Region (LocalStack)"
-            API_AWS[API Service (AWS)]
+        subgraph "AWS Region LocalStack"
+            API_AWS[API Service AWS]
             DB_Primary[Postgres Primary]
             Redis_AWS[Redis Primary]
         end
-        subgraph "GCP Region (LocalStack)"
-            API_GCP[API Service (GCP)]
+        subgraph "GCP Region LocalStack"
+            API_GCP[API Service GCP]
             DB_Standby[Postgres Standby]
             Redis_GCP[Redis Replica]
         end
-        Nomad[Nomad Cluster (Federated)]
+        Nomad[Nomad Cluster Federated]
     end
 
     User --> API_AWS
