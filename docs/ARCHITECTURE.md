@@ -94,8 +94,8 @@ classDiagram
 sequenceDiagram
     participant User
     participant API as API Service
-    participant DB as Postgres (Primary)
-    participant Redis as Redis (Queue)
+    participant DB as Postgres Primary
+    participant Redis as Redis Queue
 
     User->>API: POST /orders
     API->>DB: INSERT INTO orders ...
