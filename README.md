@@ -10,27 +10,30 @@ This POC demonstrates an active-active architecture using HashiCorp Nomad, trave
 
 ## Quick Start
 
-1.  **Start Environment:**
+For detailed setup instructions, please refer to the [Setup Guide](docs/SETUP.md).
+
+1.  **Configure Environment:**
+    Copy `.env.example` to `.env` (or create one) and set the required passwords.
+
+2.  **Start Environment:**
     ```bash
     make up
     ```
 
-2.  **Run Tests:**
+3.  **Run Tests:**
     ```bash
     make test-active-active
-    make test-network-partition
-    make test-failover
     ```
-
-3.  **Observability:**
-    -   Grafana: http://localhost:3000 (admin/admin)
-    -   Prometheus: http://localhost:9090
 
 ## Documentation
 
-*   [Architecture](docs/ARCHITECTURE.md): High-level system design.
-*   [Secrets Management](docs/SECRETS.md): How to handle secrets and security.
-*   [Agents Guidelines](docs/AGENTS.md): Development guidelines.
+*   [**Setup Guide**](docs/SETUP.md): Detailed installation and running instructions.
+*   [**API Reference**](docs/API.md): Documentation for the Application API.
+*   [**Architecture**](docs/ARCHITECTURE.md): High-level system design.
+*   [**Network Rules**](docs/NETWORK_RULES.md): Details on network simulation (VPN, firewall, latency).
+*   [**Problems & Solutions**](docs/PROBLEMS.md): Common distributed system challenges handled in this POC.
+*   [**Secrets Management**](docs/SECRETS.md): How to handle secrets and security.
+*   [**Agents Guidelines**](docs/AGENTS.md): Development guidelines.
 
 ## Environment Variables
 
