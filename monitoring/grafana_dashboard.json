@@ -1,0 +1,15 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Nomad Multi-Cloud POC",
+    "panels": [
+      {
+        "title": "API Requests",
+        "type": "graph",
+        "targets": [
+          { "expr": "rate(http_requests_total[1m])" }
+        ]
+      }
+    ]
+  }
+}
