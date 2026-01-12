@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  # SIMULATION LAYERS
+  # AWS Region Simulation (LocalStack)
+  localstack-aws:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=ec2,rds,elasticache,alb,vpc,secretsmanager
+      - AWS_EXECUTION_ENV=local
+      - DATA_DIR=/tmp/localstack-aws-data
+    networks:
+      aws-network:
+        ipv4_address: 172.20.1.10
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./terraform/localstack-aws:/etc/localstack/init/ready.d
+
+  # GCP Region Simulation (LocalStack as generic cloud)
+  localstack-gcp:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=ec2,rds,elasticache,vpc
+      - AWS_EXECUTION_ENV=local
+      - DATA_DIR=/tmp/localstack-gcp-data
+    networks:
+      gcp-network:
+        ipv4_address: 172.21.1.10
+    ports:
+      - "4570:4566"
+
+  # DATA LAYER
+  # AWS Database (Primary)
+  postgres-aws-primary:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    networks:
+      aws-network:
+        ipv4_address: 172.20.1.100
+    command: >
+      postgres -c wal_level=replica
+               -c max_wal_senders=10
+               -c max_replication_slots=10
+               -c hot_standby=on
+    cap_add:
+      - NET_ADMIN
+
+  # GCP Database (Standby)
+  postgres-gcp-standby:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    networks:
+      gcp-network:
+        ipv4_address: 172.21.1.100
+    command: >
+      postgres -c hot_standby=on
+    cap_add:
+      - NET_ADMIN
+
+  # Redis (AWS)
+  redis-aws:
+    image: redis:7-alpine
+    networks:
+      aws-network:
+        ipv4_address: 172.20.1.110
+    cap_add:
+      - NET_ADMIN
+
+  # Redis (GCP)
+  redis-gcp:
+    image: redis:7-alpine
+    networks:
+      gcp-network:
+        ipv4_address: 172.21.1.110
+    command: redis-server --replicaof 172.20.1.110 6379
+    cap_add:
+      - NET_ADMIN
+
+  # ORCHESTRATION LAYER (Nomad)
+  nomad-server-aws:
+    image: hashicorp/nomad:1.6
+    command: agent -server -bootstrap-expect=1 -bind=0.0.0.0 -client -data-dir=/tmp/nomad -datacenter=aws
+    networks:
+      aws-network:
+        ipv4_address: 172.20.1.20
+    ports:
+      - "4646:4646"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+
+  nomad-server-gcp:
+    image: hashicorp/nomad:1.6
+    command: agent -server -bootstrap-expect=1 -bind=0.0.0.0 -client -data-dir=/tmp/nomad -datacenter=gcp
+    networks:
+      gcp-network:
+        ipv4_address: 172.21.1.20
+    ports:
+      - "4647:4646"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+
+  # APPLICATION LAYER
+  api-aws:
+    build: ./app
+    environment:
+      - DATACENTER=aws
+      - DB_HOST=172.20.1.100
+      - REDIS_HOST=172.20.1.110
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      aws-network:
+        ipv4_address: 172.20.1.30
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres-aws-primary
+    cap_add:
+      - NET_ADMIN
+
+  api-gcp:
+    build: ./app
+    environment:
+      - DATACENTER=gcp
+      - DB_HOST=172.21.1.100
+      - REDIS_HOST=172.21.1.110
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      gcp-network:
+        ipv4_address: 172.21.1.30
+    ports:
+      - "8082:8080"
+    depends_on:
+      - postgres-gcp-standby
+    cap_add:
+      - NET_ADMIN
+
+  # OBSERVABILITY
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - aws-network
+      - gcp-network
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    networks:
+      - aws-network
+    ports:
+      - "3000:3000"
+
+networks:
+  aws-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  gcp-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
