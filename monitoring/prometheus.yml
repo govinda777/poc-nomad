@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'api-aws'
+    static_configs:
+      - targets: ['api-aws:8080']
+
+  - job_name: 'api-gcp'
+    static_configs:
+      - targets: ['api-gcp:8080']
