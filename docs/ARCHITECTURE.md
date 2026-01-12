@@ -125,7 +125,7 @@ graph LR
     end
 
     Nomad_AWS <-->|Normal State| Nomad_GCP
-    Nomad_AWS -.-x|Partitioned (vpn_down.sh)| Nomad_GCP
+    Nomad_AWS -.-x|Partitioned vpn_down.sh| Nomad_GCP
 ```
 
 ## Conflict Resolution
